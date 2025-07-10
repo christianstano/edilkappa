@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edilkappa - Soluzioni Edili</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="logo" onclick="showHome()">
+        <img src="img/logo.png" alt="Logo Edilkappa" />
+        <span>Edilkappa</span>
+      </div>
+      <button class="hamburger" aria-label="Apri menu" onclick="toggleMenu()">☰</button>
+      <nav id="nav-menu" class="nav-menu">
+        <a onclick="showHome()">Home</a>
+        <a onclick="openForm()">Richiedi Assistenza</a>
+        <a onclick="showPastJobs()">Lavori Effettuati</a>
+        <a onclick="showFeedbackForm()">Lascia un Feedback</a>
+        <a id="my-requests-link" onclick="showMyRequests()" style="display:none;">Le Mie Richieste</a>
+        <a id="login-link" onclick="openAuthModal()">Login</a>
+        <a id="logout-link" style="display:none;" onclick="logout()">Logout</a>
+      </nav>
+    </header>
+    <div id="auth-modal" class="auth-modal" style="display:none;">
+      <div class="auth-modal-content">
+        <span class="close-button" onclick="closeAuthModal()">&times;</span>
+        <div id="auth-container"></div>
+      </div>
+    </div>
+    <div id="image-popup" class="image-popup" style="display:none;">
+      <span class="close-popup" onclick="closeImagePopup()">&times;</span>
+      <img class="popup-content" id="popup-img">
+    </div>
+    <main class="content-wrapper">
+      <div class="overlay" id="overlay">
+        <div id="home-text">
+          <h1>Benvenuto in Edilkappa</h1>
+          <p>La soluzione completa per ogni tua esigenza edile. Richiedi assistenza o scopri i nostri lavori.</p>
+        </div>
+        <div id="home-text">
+          <h2>Chi Siamo</h2>
+          <p>Edilkappa è un'impresa edile specializzata in lavori di muratura, cartongesso, impermeabilizzazioni, ristrutturazioni complete, manutenzioni ed idraulica</p>
+        </div>
+      </div>
+      <section class="assistenza-section" id="assistenza" style="display:none;">
+        <h2>Compila il modulo per ricevere assistenza</h2>
+        <div id="form-wrapper">
+          <form id="myForm" class="form-card"></form>
+          <div id="spinner-container" style="display: none;">
+            <h3>Invio in corso...</h3>
+            <div class="dot-spinner">
+              <div class="dot-spinner__dot"></div>
+              <div class="dot-spinner__dot"></div>
+              <div class="dot-spinner__dot"></div>
+              <div class="dot-spinner__dot"></div>
+              <div class="dot-spinner__dot"></div>
+              <div class="dot-spinner__dot"></div>
+              <div class="dot-spinner__dot"></div>
+              <div class="dot-spinner__dot"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="my-requests-section" id="myRequests" style="display:none;">
+        <h2>Le Mie Richieste di Assistenza</h2>
+        <div id="my-requests-list"></div>
+      </section>
+      <section class="past-jobs-section" id="pastJobs" style="display:none;">
+        <h2>I Nostri Lavori Recenti</h2>
+        <div class="carousel-container">
+          <button class="carousel-btn prev" onclick="moveCarousel(-1)" aria-label="Precedente">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <div class="carousel-track-container">
+            <div class="carousel-track">
+              <div class="carousel-card active">
+                <h3>Ristrutturazione Bagno</h3>
+                <img src="img/ristrutturazione-bagno-merged.png" onclick="openImagePopup(this.src)" />
+                <p>
+                  <strong>Data:</strong> -----
+                </p>
+                <p>Rifacimento completo del bagno</p>
+              </div>
+              <div class="carousel-card">
+                <h3>Impianto Idraulico</h3>
+                <img src="img/impianto-idraulico-merged.png" onclick="openImagePopup(this.src)" />
+                <p>
+                  <strong>Data:</strong> -----
+                </p>
+                <p>Riparazione dell'impianto idraulico</p>
+              </div>
+            </div>
+          </div>
+          <button class="carousel-btn next" onclick="moveCarousel(1)" aria-label="Successivo">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+      </section>
+      <section class="feedback-section" id="feedback" style="display:none;">
+        <h2>La tua opinione è importante</h2>
+        <p>
+          <i>(ti consigliamo di lasciare il feedback una volta che il lavoro è stato completato per intero)</i>
+        </p>
+        <form id="feedbackForm" class="form-card">
+          <label for="feedbackName">Il tuo Nome</label>
+          <input id="feedbackName" name="Nome Cliente" type="text" required placeholder="Mario Rossi">
+          <label>Valutazione</label>
+          <div class="star-rating">
+            <i class="fa-regular fa-star" onclick="setRating(1)"></i>
+            <i class="fa-regular fa-star" onclick="setRating(2)"></i>
+            <i class="fa-regular fa-star" onclick="setRating(3)"></i>
+            <i class="fa-regular fa-star" onclick="setRating(4)"></i>
+            <i class="fa-regular fa-star" onclick="setRating(5)"></i>
+          </div>
+          <input type="hidden" name="Valutazione" id="ratingInput" value="0" required>
+          <label for="feedbackMessage">Il tuo Commento</label>
+          <textarea id="feedbackMessage" name="Commento" required placeholder="Descrivi la tua esperienza..." rows="5"></textarea>
+          <button type="submit">Invia Feedback</button>
+        </form>
+      </section>
+    </main>
+    <footer>
+      <div class="footer-content">
+        <h3>Contattaci</h3>
+        <p>
+          <i class="fas fa-envelope"></i>
+          <a href="mailto:edilkappasas@outlook.it">edilkappasas@outlook.it</a>
+        </p>
+        <p>
+          <i class="fab fa-whatsapp"></i>
+          <a href="https://wa.me/393490977711">+39 3490977711</a>
+        </p>
+        <p>
+          <i class="fas fa-phone-alt"></i>
+          <a href="tel:+393490977711">+39 3490977711</a>
+        </p>
+        <p>
+          <i class="fas fa-map-marker-alt"></i> Via S.Ambrogio 38, Vimodrone (MI)
+        </p>
+      </div>
+      <div class="footer-bottom"> &copy; 2025 <strong>Edilkappa</strong>. Tutti i diritti riservati. </div>
+    </footer>
+    <script src="script.js"></script>
+  </body>
+</html>

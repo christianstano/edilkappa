@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pannello Admin - Edilkappa</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <header>
+        <h1>Pannello Amministratore Edilkappa</h1>
+        <button id="logout-btn">Logout</button>
+    </header>
+
+    <main>
+        <section id="requests-section">
+            <h2>Richieste di Assistenza</h2>
+            <div id="requests-container" class="data-container">
+                <p>Caricamento...</p>
+            </div>
+        </section>
+
+        <section id="feedback-section">
+            <h2>Feedback dei Clienti</h2>
+            <div id="feedback-container" class="data-container">
+                <p>Caricamento...</p>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <div class="footer-content">
+            <h3>Contattaci</h3>
+            <p><i class="fas fa-envelope"></i> <a href="mailto:edilkappasas@outlook.it">edilkappasas@outlook.it</a></p>
+            <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/393490977711">+39 3490977711</a></p>
+            <p><i class="fas fa-phone-alt"></i> <a href="tel:+393490977711">+39 3490977711</a></p>
+            <p><i class="fas fa-map-marker-alt"></i> Via S.Ambrogio 38, Vimodrone (MI)</p>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2025 <strong>Edilkappa</strong>. Tutti i diritti riservati.
+        </div>
+    </footer>
+    
+    <script src="admin.js"></script>
+</body>
+</html>
