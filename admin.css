@@ -107,6 +107,34 @@ h2 {
     font-size: 1.2rem;
 }
 
+/* Stili per l'header delle sezioni admin */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.export-btn {
+    background-color: #0059b3;
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+}
+
+.export-btn:hover {
+    background-color: #004080;
+}
+
 /*Footer*/
 
 footer {
