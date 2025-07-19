@@ -8,6 +8,10 @@ const ADMIN_EMAIL = "christianstano450@gmail.com";
 const { createClient } = supabase;
 const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Variabili per memorizzare i dati caricati per l'esportazione
+let allRequests = [];
+let allFeedback = [];
+
 document.addEventListener('DOMContentLoaded', async () => {
     const { data: { session } } = await _supabase.auth.getSession();
     
@@ -18,12 +22,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     loadAllRequests();
-    loadAllFeedback(); // La chiamata è qui
+    loadAllFeedback();
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
         await _supabase.auth.signOut();
         window.location.href = 'index.html';
     });
+
+    // Listener per i bottoni di esportazione
+    document.getElementById('export-requests-btn').addEventListener('click', exportRequestsToCSV);
+    document.getElementById('export-feedback-btn').addEventListener('click', exportFeedbackToCSV);
 });
 
 async function loadAllRequests() {
@@ -35,6 +43,9 @@ async function loadAllRequests() {
         container.innerHTML = `<p class="error">Errore nel caricamento.</p>`;
         return;
     }
+    
+    allRequests = data; // Salva i dati nella variabile globale
+
     if (data.length === 0) {
         container.innerHTML = `<p>Nessuna richiesta di assistenza trovata.</p>`;
         return;
@@ -58,9 +69,6 @@ async function loadAllRequests() {
     `).join('');
 }
 
-// ==========================================================
-// == FUNZIONE PER CARICARE I FEEDBACK - CORRETTA
-// ==========================================================
 async function loadAllFeedback() {
     const container = document.getElementById('feedback-container');
     const { data, error } = await _supabase.rpc('get_all_feedback');
@@ -70,12 +78,13 @@ async function loadAllFeedback() {
         container.innerHTML = `<p class="error">Errore nel caricamento dei feedback.</p>`;
         return;
     }
+
+    allFeedback = data; // Salva i dati nella variabile globale
+
     if (data.length === 0) {
         container.innerHTML = `<p>Nessun feedback trovato.</p>`;
         return;
     }
-    
-    // Codice per generare le card dei feedback
     container.innerHTML = data.map(fb => `
         <div class="item-card">
             <h3>Feedback di: ${fb.name}</h3>
@@ -98,4 +107,71 @@ async function updateStatus(requestId, newStatus) {
     } else {
         loadAllRequests();
     }
+}
+
+// ==========================================================
+// == FUNZIONI PER L'ESPORTAZIONE IN CSV
+// ==========================================================
+
+function escapeCSV(str) {
+    if (str === null || str === undefined) return '';
+    let result = String(str);
+    if (result.includes(',') || result.includes('"') || result.includes('\n')) {
+        result = result.replace(/"/g, '""');
+        result = `"${result}"`;
+    }
+    return result;
+}
+
+function downloadCSV(csvContent, fileName) {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", fileName);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
+function exportRequestsToCSV() {
+    if (allRequests.length === 0) {
+        alert("Nessuna richiesta da esportare.");
+        return;
+    }
+
+    const headers = ["ID", "Data", "Nome", "Telefono", "Problema", "Stato"];
+    const rows = allRequests.map(req => [
+        req.id,
+        new Date(req.created_at).toLocaleString('it-IT'),
+        req.name,
+        req.phone,
+        req.issue,
+        req.status
+    ].map(escapeCSV).join(','));
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    downloadCSV(csvContent, 'richieste_edilkappa.csv');
+}
+
+function exportFeedbackToCSV() {
+    if (allFeedback.length === 0) {
+        alert("Nessun feedback da esportare.");
+        return;
+    }
+
+    const headers = ["ID", "Data", "Nome", "Valutazione", "Commento"];
+    const rows = allFeedback.map(fb => [
+        fb.id,
+        new Date(fb.created_at).toLocaleString('it-IT'),
+        fb.name,
+        fb.rating,
+        fb.comment
+    ].map(escapeCSV).join(','));
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    downloadCSV(csvContent, 'feedback_edilkappa.csv');
 }
