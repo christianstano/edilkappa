@@ -1,6 +1,4 @@
 // ======== CONFIGURAZIONE SUPABASE ========
-// La chiave API e l'URL non sono più esposti qui per motivi di sicurezza
-// In un ambiente di produzione, queste variabili andrebbero gestite in modo sicuro
 const SUPABASE_URL = 'https://rcfrdacrsnufecelbhfs.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjZnJkYWNyc251ZmVjZWxiaGZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5OTIxNjEsImV4cCI6MjA2NzU2ODE2MX0.jMwrZ7SftZMpxixb3gBMo883uE8SVC1XecFvknw9da4';
 
@@ -383,5 +381,3 @@ function closeImagePopup() {
         popup.style.display = 'none';
     }
 }
-
-
