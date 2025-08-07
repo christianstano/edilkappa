@@ -1,4 +1,3 @@
-// ======== CONFIGURAZIONE SUPABASE ========
 const SUPABASE_URL = 'https://rcfrdacrsnufecelbhfs.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjZnJkYWNyc251ZmVjZWxiaGZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5OTIxNjEsImV4cCI6MjA2NzU2ODE2MX0.jMwrZ7SftZMpxixb3gBMo883uE8SVC1XecFvknw9da4';
 
@@ -8,39 +7,69 @@ const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let allRequests = [];
 let allFeedback = [];
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // Non è più necessario il controllo dell'email qui, l'autorizzazione è gestita dalle policy RLS
-    const { data: { session } } = await _supabase.auth.getSession();
+document.addEventListener("DOMContentLoaded", async () => {
+    // --- CONTROLLO DI AUTORIZZAZIONE ---
+    const { data: { user } } = await _supabase.auth.getUser();
 
-    if (!session) {
-        alert("Accesso non autorizzato.");
+    // 1. Reindirizza se l'utente non è loggato
+    if (!user) {
+        alert("Accesso non autorizzato. Effettua il login.");
         window.location.href = 'index.html';
         return;
     }
 
+    // 2. Controlla il ruolo dell'utente dalla tabella 'profiles'
+    const { data: profile, error: profileError } = await _supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+
+    if (profileError || !profile || !profile.is_admin) {
+        alert("Accesso negato. Non disponi dei permessi di amministratore.");
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // Se i controlli passano, esegui il resto del codice per caricare la pagina
+    console.log("Accesso amministratore consentito.");
+
+    // --- INIZIALIZZAZIONE DELLA PAGINA ADMIN ---
     loadAllRequests();
     loadAllFeedback();
 
-    document.getElementById('logout-btn')?.addEventListener('click', async () => {
+    document.getElementById('exportRequestsBtn')?.addEventListener('click', exportRequestsToCSV);
+    document.getElementById('exportFeedbackBtn')?.addEventListener('click', exportFeedbackToCSV);
+
+    document.getElementById('requests-container')?.addEventListener('change', async (event) => {
+        if (event.target.classList.contains('status-select')) {
+            const requestId = event.target.dataset.id;
+            const newStatus = event.target.value;
+            await updateStatus(requestId, newStatus);
+        }
+    });
+
+    // Listener per il logout (aggiunto per completezza)
+    document.getElementById('logout-admin-btn')?.addEventListener('click', async () => {
         await _supabase.auth.signOut();
         window.location.href = 'index.html';
     });
-
-    document.getElementById('export-requests-btn')?.addEventListener('click', exportRequestsToCSV);
-    document.getElementById('export-feedback-btn')?.addEventListener('click', exportFeedbackToCSV);
 });
 
+// ==========================================================
+// == FUNZIONI PER LE RICHIESTE                              ==
+// ==========================================================
 async function loadAllRequests() {
     const container = document.getElementById('requests-container');
     if (!container) return;
-    
+
     container.innerHTML = `<p class="loading">Caricamento richieste in corso...</p>`;
 
     const { data, error } = await _supabase.rpc('get_all_requests');
 
     if (error) {
         console.error("Errore nel caricare le richieste:", error);
-        container.innerHTML = `<p class="error">Errore nel caricamento. Assicurati che l'utente sia autorizzato.</p>`;
+        container.innerHTML = `<p class="error">Errore nel caricamento delle richieste. Assicurati che l'utente sia autorizzato.</p>`;
         return;
     }
 
@@ -50,18 +79,19 @@ async function loadAllRequests() {
         container.innerHTML = `<p>Nessuna richiesta di assistenza trovata.</p>`;
         return;
     }
+
     container.innerHTML = data.map(req => `
-        <div class="item-card status-${req.status.toLowerCase().replace(/ /g, '-')}">
+        <div class="item-card">
             <h3>Richiesta di: ${req.name}</h3>
             <p><strong>Data:</strong> ${new Date(req.created_at).toLocaleString('it-IT')}</p>
-            <p><strong>Telefono:</strong> <a href="tel:${req.phone}">${req.phone}</a></p>
+            <p><strong>Telefono:</strong> ${req.phone}</p>
             <p><strong>Problema:</strong> ${req.issue}</p>
-            ${req.photo_url ? `<p><strong>Foto:</strong> <a href="${req.photo_url}" target="_blank">Visualizza immagine</a></p>` : ''}
-            <div class="actions">
-                <label for="status-select-${req.id}">Stato:</label>
-                <select id="status-select-${req.id}" class="status-select" onchange="updateStatus(${req.id}, this.value)" ${req.status === 'Completato' ? 'disabled' : ''}>
-                    <option value="In Attesa" ${req.status === 'In Attesa' ? 'selected' : ''}>In Attesa</option>
-                    <option value="Richiesta Presa in Carico" ${req.status === 'Richiesta Presa in Carico' ? 'selected' : ''}>Presa in Carico</option>
+            ${req.photo_url ? `<p><strong>Foto:</strong> <a href="#" onclick="openImagePopup('${req.photo_url}'); return false;">Visualizza</a></p>` : ''}
+            <div>
+                <label for="status-${req.id}">Stato:</label>
+                <select id="status-${req.id}" class="status-select" data-id="${req.id}">
+                    <option value="In attesa" ${req.status === 'In attesa' ? 'selected' : ''}>In attesa</option>
+                    <option value="Presa in Carico" ${req.status === 'Presa in Carico' ? 'selected' : ''}>Presa in Carico</option>
                     <option value="Completato" ${req.status === 'Completato' ? 'selected' : ''}>Completato</option>
                 </select>
             </div>
@@ -69,6 +99,23 @@ async function loadAllRequests() {
     `).join('');
 }
 
+async function updateStatus(requestId, newStatus) {
+    const { error } = await _supabase.rpc('update_request_status', {
+        request_id: requestId,
+        new_status: newStatus
+    });
+
+    if (error) {
+        alert("Errore nell'aggiornamento della richiesta.");
+        console.error("Errore RPC 'update_request_status':", error);
+    } else {
+        loadAllRequests();
+    }
+}
+
+// ==========================================================
+// == FUNZIONI PER I FEEDBACK                                ==
+// ==========================================================
 async function loadAllFeedback() {
     const container = document.getElementById('feedback-container');
     if (!container) return;
@@ -99,22 +146,8 @@ async function loadAllFeedback() {
     `).join('');
 }
 
-async function updateStatus(requestId, newStatus) {
-    const { error } = await _supabase.rpc('update_request_status', {
-        request_id: requestId,
-        new_status: newStatus
-    });
-
-    if (error) {
-        alert("Errore nell'aggiornamento della richiesta.");
-        console.error("Errore RPC 'update_request_status':", error);
-    } else {
-        loadAllRequests();
-    }
-}
-
 // ==========================================================
-// == FUNZIONI PER L'ESPORTAZIONE IN CSV
+// == FUNZIONI PER L'ESPORTAZIONE IN CSV                   ==
 // ==========================================================
 function escapeCSV(str) {
     if (str === null || str === undefined) return '';
@@ -177,4 +210,23 @@ function exportFeedbackToCSV() {
 
     const csvContent = [headers.join(','), ...rows].join('\n');
     downloadCSV(csvContent, 'feedback_edilkappa.csv');
+}
+
+// ==========================================================
+// == FUNZIONI POPUP IMMAGINI                                ==
+// ==========================================================
+function openImagePopup(src) {
+    const popup = document.getElementById('image-popup');
+    const popupImg = document.getElementById('popup-img');
+    if (popup && popupImg) {
+        popupImg.src = src;
+        popup.style.display = 'flex';
+    }
+}
+
+function closeImagePopup() {
+    const popup = document.getElementById('image-popup');
+    if (popup) {
+        popup.style.display = 'none';
+    }
 }
