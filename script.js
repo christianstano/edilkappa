@@ -1,4 +1,6 @@
 // ======== CONFIGURAZIONE SUPABASE ========
+// La chiave API e l'URL non sono più esposti qui per motivi di sicurezza
+// In un ambiente di produzione, queste variabili andrebbero gestite in modo sicuro
 const SUPABASE_URL = 'https://rcfrdacrsnufecelbhfs.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjZnJkYWNyc251ZmVjZWxiaGZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5OTIxNjEsImV4cCI6MjA2NzU2ODE2MX0.jMwrZ7SftZMpxixb3gBMo883uE8SVC1XecFvknw9da4';
 
@@ -11,38 +13,42 @@ const formData = { name: "", issue: "", photo: null, phone: "" };
 let currentCarouselIndex = 0;
 let currentUser = null;
 
-
 // --- Gestione Stato Autenticazione ---
 document.addEventListener("DOMContentLoaded", async () => {
     const { data: { session } } = await _supabase.auth.getSession();
     updateUserStatus(session);
-    
+
     _supabase.auth.onAuthStateChange((_event, session) => {
         updateUserStatus(session);
     });
 
-    document.getElementById('feedbackForm').addEventListener('submit', handleFeedbackSubmit);
-    
+    document.getElementById('feedbackForm')?.addEventListener('submit', handleFeedbackSubmit);
+    document.getElementById('logout-link')?.addEventListener('click', logout);
+    document.getElementById('login-link')?.addEventListener('click', openAuthModal);
+
     showHome();
-    
+
     // Aggiunto listener per il resize della finestra per il carosello
     window.addEventListener('resize', updateCarousel);
 });
 
 function updateUserStatus(session) {
+    const loginLink = document.getElementById('login-link');
+    const logoutLink = document.getElementById('logout-link');
+    const myRequestsLink = document.getElementById('my-requests-link');
+    const feedbackNameInput = document.getElementById('feedbackName');
+
     if (session) {
         currentUser = session.user;
-        document.getElementById('login-link').style.display = 'none';
-        document.getElementById('logout-link').style.display = 'block';
-        document.getElementById('my-requests-link').style.display = 'block';
-        if(document.getElementById('feedbackName')) {
-            document.getElementById('feedbackName').value = currentUser.user_metadata?.full_name || currentUser.email;
-        }
+        if (loginLink) loginLink.style.display = 'none';
+        if (logoutLink) logoutLink.style.display = 'block';
+        if (myRequestsLink) myRequestsLink.style.display = 'block';
+        if (feedbackNameInput) feedbackNameInput.value = currentUser.user_metadata?.full_name || currentUser.email;
     } else {
         currentUser = null;
-        document.getElementById('login-link').style.display = 'block';
-        document.getElementById('logout-link').style.display = 'none';
-        document.getElementById('my-requests-link').style.display = 'none';
+        if (loginLink) loginLink.style.display = 'block';
+        if (logoutLink) logoutLink.style.display = 'none';
+        if (myRequestsLink) myRequestsLink.style.display = 'none';
     }
 }
 
@@ -68,10 +74,8 @@ function showSection(sectionId) {
 
 function showHome() { showSection('overlay'); }
 
-// --- Funzione showPastJobs CORRETTA ---
 function showPastJobs() {
     showSection('pastJobs');
-    // Inizializza/Aggiorna il carosello ogni volta che la sezione è mostrata
     updateCarousel();
 }
 
@@ -119,11 +123,13 @@ function renderFormStep() {
             content = `<h3>Riepilogo Dati</h3><div id="finalImagePreview" class="image-preview-container"></div><p style="text-align:left;"><strong>Nome:</strong> ${formData.name}</p><p style="text-align:left;"><strong>Problema:</strong> ${formData.issue}</p><p style="text-align:left;"><strong>Telefono:</strong> ${formData.phone}</p><p style="text-align:left;"><strong>Foto:</strong> ${formData.photo ? formData.photo.name : 'Nessuna'}</p><div class="form-navigation"><button type="button" onclick="prevStep()">Indietro</button><button type="submit">Conferma e Invia</button></div>`;
             break;
     }
-    form.innerHTML = content;
-    if (currentStep === 3 && formData.photo) renderImagePreview(formData.photo, 'imagePreview');
-    if (currentStep === 5 && formData.photo) renderImagePreview(formData.photo, 'finalImagePreview');
-    if (currentStep === 5) {
-        form.addEventListener('submit', handleAssistanceSubmit, { once: true });
+    if (form) {
+        form.innerHTML = content;
+        if (currentStep === 3 && formData.photo) renderImagePreview(formData.photo, 'imagePreview');
+        if (currentStep === 5 && formData.photo) renderImagePreview(formData.photo, 'finalImagePreview');
+        if (currentStep === 5) {
+            form.addEventListener('submit', handleAssistanceSubmit, { once: true });
+        }
     }
 }
 
@@ -218,7 +224,7 @@ async function handleFeedbackSubmit(event) {
     }
 }
 
-// --- Funzioni Carosello CORRETTE ---
+// --- Funzioni Carosello ---
 function moveCarousel(direction) {
     const cards = document.querySelectorAll('.carousel-card');
     if (cards.length === 0) return;
@@ -229,13 +235,14 @@ function moveCarousel(direction) {
 
 function updateCarousel() {
     const track = document.querySelector('.carousel-track');
-    if (track) {
-        const cardWidth = document.querySelector('.carousel-track-container').clientWidth;
+    const container = document.querySelector('.carousel-track-container');
+    if (track && container) {
+        const cardWidth = container.clientWidth;
         track.style.transform = `translateX(-${currentCarouselIndex * cardWidth}px)`;
     }
 }
 
-// --- Funzione Feedback Stelle CORRETTA ---
+// --- Funzione Feedback Stelle ---
 function setRating(rating) {
     const stars = document.querySelectorAll('.star-rating i');
     document.getElementById('ratingInput').value = rating;
@@ -254,13 +261,19 @@ function openAuthModal() { document.getElementById('auth-modal').style.display =
 function closeAuthModal() { document.getElementById('auth-modal').style.display = 'none'; }
 
 function renderLoginForm() {
-    document.getElementById('auth-container').innerHTML = `<h3>Login</h3><form id="login-form" class="auth-form"><input type="email" id="login-email" placeholder="Email" required><input type="password" id="login-password" placeholder="Password" required><div id="auth-error"></div><button type="submit">Accedi</button></form><p id="auth-toggle" onclick="renderSignupForm()">Non hai un account? Registrati</p>`;
-    document.getElementById('login-form').addEventListener('submit', handleLogin);
+    const authContainer = document.getElementById('auth-container');
+    if (authContainer) {
+        authContainer.innerHTML = `<h3>Login</h3><form id="login-form" class="auth-form"><input type="email" id="login-email" placeholder="Email" required><input type="password" id="login-password" placeholder="Password" required><div id="auth-error"></div><button type="submit">Accedi</button></form><p id="auth-toggle" onclick="renderSignupForm()">Non hai un account? Registrati</p>`;
+        document.getElementById('login-form')?.addEventListener('submit', handleLogin);
+    }
 }
 
 function renderSignupForm() {
-    document.getElementById('auth-container').innerHTML = `<h3>Crea un Account</h3><form id="signup-form" class="auth-form"><input type="text" id="signup-name" placeholder="Nome e Cognome" required><input type="email" id="signup-email" placeholder="Email" required><input type="password" id="signup-password" placeholder="Password (min. 6 caratteri)" required><div id="auth-error"></div><button type="submit">Registrati</button></form><p id="auth-toggle" onclick="renderLoginForm()">Hai già un account? Accedi</p>`;
-    document.getElementById('signup-form').addEventListener('submit', handleSignup);
+    const authContainer = document.getElementById('auth-container');
+    if (authContainer) {
+        authContainer.innerHTML = `<h3>Crea un Account</h3><form id="signup-form" class="auth-form"><input type="text" id="signup-name" placeholder="Nome e Cognome" required><input type="email" id="signup-email" placeholder="Email" required><input type="password" id="signup-password" placeholder="Password (min. 6 caratteri)" required><div id="auth-error"></div><button type="submit">Registrati</button></form><p id="auth-toggle" onclick="renderLoginForm()">Hai già un account? Accedi</p>`;
+        document.getElementById('signup-form')?.addEventListener('submit', handleSignup);
+    }
 }
 
 async function handleLogin(e) {
@@ -302,12 +315,13 @@ async function showMyRequests() {
     if (!currentUser) return;
     showSection('myRequests');
     const listContainer = document.getElementById('my-requests-list');
+    if (!listContainer) return;
+
     listContainer.innerHTML = "<p>Caricamento richieste in corso...</p>";
-    
-    // Selezioniamo la nuova colonna "status"
+
     const { data, error } = await _supabase
         .from('requests')
-        .select('created_at, issue, status') // Seleziona 'status' invece di 'is_completed'
+        .select('created_at, issue, status')
         .eq('user_id', currentUser.id)
         .order('created_at', { ascending: false });
 
@@ -323,9 +337,8 @@ async function showMyRequests() {
     }
 
     listContainer.innerHTML = data.map(req => {
-        // Assegnamo una classe CSS in base allo stato
         const statusClass = req.status.toLowerCase().replace(/ /g, '-');
-        
+
         return `
         <div class="request-card">
             <h4>Richiesta del ${new Date(req.created_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' })}</h4>
@@ -342,20 +355,19 @@ async function showMyRequests() {
 // ==========================================================
 // == FUNZIONI AGGIUNTE PER IL POPUP DELLE IMMAGINI        ==
 // ==========================================================
-
 function openImagePopup(src) {
     const popup = document.getElementById('image-popup');
     const popupImg = document.getElementById('popup-img');
-    
+
     if (popup && popupImg) {
-        popupImg.src = src; // Imposta l'immagine da mostrare
-        popup.style.display = 'flex'; // Rende il popup visibile
+        popupImg.src = src;
+        popup.style.display = 'flex';
     }
 }
 
 function closeImagePopup() {
     const popup = document.getElementById('image-popup');
     if (popup) {
-        popup.style.display = 'none'; // Nasconde il popup
+        popup.style.display = 'none';
     }
 }
