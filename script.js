@@ -271,8 +271,8 @@ function renderLoginForm() {
                 <div id="auth-error"></div>
                 <button type="submit">Accedi</button>
             </form>
-            <p id="auth-toggle" onclick="renderSignupForm()">Non hai un account? Registrati</p>
-            <p><a href="forgot-password.html">Password dimenticata?</a></p>
+            <p style="text-align:center;" id="auth-toggle" onclick="renderSignupForm()">Non hai un account? Registrati</p>
+            <p style="text-align:center;"><a href="forgot-password.html">Password dimenticata?</a></p>
         `;
         document.getElementById('login-form')?.addEventListener('submit', handleLogin);
     }
@@ -381,3 +381,4 @@ function closeImagePopup() {
         popup.style.display = 'none';
     }
 }
+
