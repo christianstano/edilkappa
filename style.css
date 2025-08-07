@@ -52,7 +52,7 @@ body {
     color: white;
     font-size: 2rem;
     cursor: pointer;
-    display: block; /* Visibile su mobile di default */
+    display: block;
 }
 
 .nav-menu {
@@ -110,9 +110,9 @@ body {
 }
 
 /* Stili comuni per le sezioni */
-.assistenza-section, .past-jobs-section, .feedback-section {
+.assistenza-section, .past-jobs-section, .feedback-section, .my-requests-section {
     padding: 2rem 1rem;
-    display: none; /* Nascoste di default */
+    display: none;
     flex-direction: column;
     align-items: center;
     gap: 1.5rem;
@@ -120,7 +120,7 @@ body {
     flex-grow: 1;
 }
 
-.assistenza-section h2, .past-jobs-section h2, .feedback-section h2 {
+.assistenza-section h2, .past-jobs-section h2, .feedback-section h2, .my-requests-section h2 {
     text-align: center;
 }
 
@@ -158,10 +158,10 @@ textarea {
 .form-navigation {
     justify-content: space-between;
     margin-top: 1rem;
-    display: flex; /* Aggiunto per allineare i bottoni */
+    display: flex;
 }
 
-/* Stili Anteprima Immagine  */
+/* Stili Anteprima Immagine  */
 .image-preview-container {
     margin: 1rem 0;
     display: flex;
@@ -177,7 +177,7 @@ textarea {
 }
 
 .form-navigation div:first-child:not(:last-child) {
-    width: 1px; /* Trucco per far funzionare justify-content quando c'è un solo bottone */
+    width: 1px;
 }
 
 /* Stili per il contenitore del form e spinner */
@@ -223,7 +223,7 @@ button[type="submit"] {
 }
 .carousel-track-container {
     overflow: hidden;
-    flex-grow: 1; /* Permette al contenitore di occupare lo spazio disponibile */
+    flex-grow: 1;
 }
 .carousel-track {
     display: flex;
@@ -251,7 +251,7 @@ button[type="submit"] {
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    flex-shrink: 0; /* Impedisce ai bottoni di restringersi */
+    flex-shrink: 0;
 }
 
 /* Stili Feedback e Star Rating */
@@ -270,7 +270,7 @@ button[type="submit"] {
 .star-rating i:hover {
     transform: scale(1.2);
 }
-.star-rating i.fas { /* Classe per stella piena */
+.star-rating i.fas {
     color: #ffcc00;
 }
 
@@ -326,7 +326,7 @@ footer a:hover {
     justify-content: flex-start;
     height: var(--uib-size);
     width: var(--uib-size);
-    margin: 2rem auto; /* Centra lo spinner */
+    margin: 2rem auto;
 }
 .dot-spinner__dot {
     position: absolute;
@@ -369,13 +369,8 @@ footer a:hover {
 }
 
 /* ------------- MEDIA QUERIES PER RESPONSIVE DESIGN ------------- */
-
-/* Tablet (e cellulari grandi in orizzontale) */
 @media (min-width: 768px) {
-    .hamburger {
-        display: none; /* Nascondi hamburger su schermi grandi */
-    }
-
+    .hamburger { display: none; }
     .nav-menu {
         display: flex;
         flex-direction: row;
@@ -385,111 +380,73 @@ footer a:hover {
         background-color: transparent;
         animation: none;
     }
-
     .nav-menu a {
         border-top: none;
         padding: 0.5rem 1rem;
         border-radius: 5px;
     }
-
-    #home-text {
-        padding: 2.5rem;
-    }
+    #home-text { padding: 2.5rem; }
 }
-
-/* Desktop */
 @media (min-width: 1024px) {
-    .navbar {
-        padding: 1rem 3rem;
-    }
-
-    .assistenza-section, .past-jobs-section, .feedback-section {
-        padding: 3rem 2rem;
-    }
-
-    .carousel-card img {
-        height: 250px;
-    }
+    .navbar { padding: 1rem 3rem; }
+    .assistenza-section, .past-jobs-section, .feedback-section { padding: 3rem 2rem; }
+    .carousel-card img { height: 250px; }
 }
 
 /* ========================================================== */
 /* == STILI AGGIUNTI PER LE NUOVE FUNZIONALITÀ (LOGIN, ECC.) == */
 /* ========================================================== */
-
-/* Modal di Autenticazione */
 .auth-modal {
-  position: fixed;
-  z-index: 2000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0,0,0,0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-
 .auth-modal-content {
-  background-color: #fefefe;
-  color: #003366; /* Colore testo coerente */
-  margin: auto;
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  width: 90%;
-  max-width: 450px;
-  position: relative;
-  animation: fadeIn 0.3s;
+    background-color: #fefefe;
+    color: #003366;
+    margin: auto;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 450px;
+    position: relative;
+    animation: fadeIn 0.3s;
 }
-
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
 }
-
 .close-button {
-  color: #aaa;
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
 }
-.close-button:hover {
-    color: #333;
-}
-
-#auth-container h3 {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-#auth-container .auth-form {
-  display: flex;
-  flex-direction: column;
-}
-
-#auth-container .auth-form input {
-  margin-bottom: 1rem;
-}
-
-#auth-container .auth-form button {
-  width: 100%;
-  margin-top: 0.5rem;
-}
-
+.close-button:hover { color: #333; }
+#auth-container h3 { text-align: center; margin-bottom: 1.5rem; }
+#auth-container .auth-form { display: flex; flex-direction: column; }
+#auth-container .auth-form input { margin-bottom: 1rem; }
+#auth-container .auth-form button { width: 100%; margin-top: 0.5rem; }
 #auth-container #auth-toggle {
-  text-align: center;
-  margin-top: 1rem;
-  cursor: pointer;
-  color: #0059b3;
-  text-decoration: underline;
-  font-size: 0.9rem;
+    text-align: center;
+    margin-top: 1rem;
+    cursor: pointer;
+    color: #0059b3;
+    text-decoration: underline;
+    font-size: 0.9rem;
 }
-
 #auth-error {
     color: #c0392b;
     text-align: center;
@@ -498,11 +455,10 @@ footer a:hover {
     min-height: 1.2em;
 }
 
-
 /* Sezione "Le Mie Richieste" */
 .my-requests-section {
     padding: 2rem 1rem;
-    display: none; /* Nascosto di default */
+    display: none;
     flex-direction: column;
     align-items: center;
     gap: 1.5rem;
@@ -510,9 +466,7 @@ footer a:hover {
     flex-grow: 1;
 }
 
-.my-requests-section h2 {
-    text-align: center;
-}
+.my-requests-section h2 { text-align: center; }
 
 #my-requests-list {
     width: 100%;
@@ -529,82 +483,82 @@ footer a:hover {
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
-
-.request-card h4 {
-    margin-bottom: 0.75rem;
-    color: #003366;
-}
-
-.request-card p {
-    margin-bottom: 0.5rem;
-    font-size: 0.95rem;
-    line-height: 1.5;
-}
-
+.request-card h4 { margin-bottom: 0.75rem; color: #003366; }
+.request-card p { margin-bottom: 0.5rem; font-size: 0.95rem; line-height: 1.5; }
 .request-card .status {
     font-weight: bold;
     padding: 0.25rem 0.75rem;
-    border-radius: 15px; /* Pill-shape */
+    border-radius: 15px;
     font-size: 0.85rem;
     display: inline-block;
 }
 
 /* Stili per gli stati delle richieste (VISTA UTENTE) */
-.request-card .status.in-attesa {
-    color: #a50e0e;
-    background-color: #fce8e6;
-}
-
-.request-card .status.richiesta-presa-in-carico {
-    color: #004085;
-    background-color: #cce5ff;
-}
-
-.request-card .status.completato {
-    color: #1e8e3e;
-    background-color: #e6f4ea;
-}
+.request-card .status.in-attesa { color: #a50e0e; background-color: #fce8e6; }
+.request-card .status.richiesta-presa-in-carico { color: #004085; background-color: #cce5ff; }
+.request-card .status.completato { color: #1e8e3e; background-color: #e6f4ea; }
 
 /* ========================================================== */
-/* == STILI AGGIUNTI PER IL POPUP DELLE IMMAGINI           == */
+/* == STILI AGGIUNTI PER IL POPUP DELLE IMMAGINI            == */
 /* ========================================================== */
-
-/* Aggiungiamo un cursore a puntatore sulle immagini del carosello */
-.carousel-card img {
-    cursor: pointer;
-}
-
+.carousel-card img { cursor: pointer; }
 .image-popup {
-  position: fixed;
-  z-index: 3000; /* Assicura che sia sopra a tutto */
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.85); /* Sfondo nero semi-trasparente */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  animation: fadeIn 0.3s;
+    position: fixed;
+    z-index: 3000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s;
 }
-
 .popup-content {
-  max-width: 90%;
-  max-height: 90%;
-  object-fit: contain; /* Mantiene le proporzioni dell'immagine */
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
 }
-
 .close-popup {
-  position: absolute;
-  top: 20px;
-  right: 35px;
-  color: #fff;
-  font-size: 40px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: color 0.3s;
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s;
 }
+.close-popup:hover { color: #ccc; }
 
-.close-popup:hover {
-  color: #ccc;
+/* Stili per il recupero password */
+.reset-container {
+    background: #fff;
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+    margin-top: 2rem;
 }
+.reset-container h2 { margin-bottom: 1rem; color: #003366; }
+.reset-container p { color: #004080; margin-bottom: 2rem; line-height: 1.5; }
+#forgot-password-form, #update-password-form { display: flex; flex-direction: column; }
+#email-input, #new-password-input {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #ccc;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+}
+#message-container, #update-message-container {
+    margin-top: 1.5rem;
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+#message-container[style*="green"], #update-message-container[style*="green"] { color: #1e8e3e; }
+#message-container[style*="red"], #update-message-container[style*="red"] { color: #c0392b; }
+.auth-modal-content p a { color: #0059b3; text-decoration: underline; font-size: 0.9rem; }
