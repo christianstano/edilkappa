@@ -2,20 +2,17 @@
 const SUPABASE_URL = 'https://rcfrdacrsnufecelbhfs.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjZnJkYWNyc251ZmVjZWxiaGZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5OTIxNjEsImV4cCI6MjA2NzU2ODE2MX0.jMwrZ7SftZMpxixb3gBMo883uE8SVC1XecFvknw9da4';
 
-// ======== IMPOSTAZIONE ADMIN ========
-const ADMIN_EMAIL = "christianstano450@gmail.com";
-
 const { createClient } = supabase;
 const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Variabili per memorizzare i dati caricati per l'esportazione
 let allRequests = [];
 let allFeedback = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Non è più necessario il controllo dell'email qui, l'autorizzazione è gestita dalle policy RLS
     const { data: { session } } = await _supabase.auth.getSession();
-    
-    if (!session || session.user.email !== ADMIN_EMAIL) {
+
+    if (!session) {
         alert("Accesso non autorizzato.");
         window.location.href = 'index.html';
         return;
@@ -24,27 +21,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadAllRequests();
     loadAllFeedback();
 
-    document.getElementById('logout-btn').addEventListener('click', async () => {
+    document.getElementById('logout-btn')?.addEventListener('click', async () => {
         await _supabase.auth.signOut();
         window.location.href = 'index.html';
     });
 
-    // Listener per i bottoni di esportazione
-    document.getElementById('export-requests-btn').addEventListener('click', exportRequestsToCSV);
-    document.getElementById('export-feedback-btn').addEventListener('click', exportFeedbackToCSV);
+    document.getElementById('export-requests-btn')?.addEventListener('click', exportRequestsToCSV);
+    document.getElementById('export-feedback-btn')?.addEventListener('click', exportFeedbackToCSV);
 });
 
 async function loadAllRequests() {
     const container = document.getElementById('requests-container');
+    if (!container) return;
+    
+    container.innerHTML = `<p class="loading">Caricamento richieste in corso...</p>`;
+
     const { data, error } = await _supabase.rpc('get_all_requests');
 
     if (error) {
         console.error("Errore nel caricare le richieste:", error);
-        container.innerHTML = `<p class="error">Errore nel caricamento.</p>`;
+        container.innerHTML = `<p class="error">Errore nel caricamento. Assicurati che l'utente sia autorizzato.</p>`;
         return;
     }
-    
-    allRequests = data; // Salva i dati nella variabile globale
+
+    allRequests = data;
 
     if (data.length === 0) {
         container.innerHTML = `<p>Nessuna richiesta di assistenza trovata.</p>`;
@@ -71,15 +71,19 @@ async function loadAllRequests() {
 
 async function loadAllFeedback() {
     const container = document.getElementById('feedback-container');
+    if (!container) return;
+
+    container.innerHTML = `<p class="loading">Caricamento feedback in corso...</p>`;
+
     const { data, error } = await _supabase.rpc('get_all_feedback');
 
     if (error) {
         console.error("Errore nel caricare i feedback:", error);
-        container.innerHTML = `<p class="error">Errore nel caricamento dei feedback.</p>`;
+        container.innerHTML = `<p class="error">Errore nel caricamento dei feedback. Assicurati che l'utente sia autorizzato.</p>`;
         return;
     }
 
-    allFeedback = data; // Salva i dati nella variabile globale
+    allFeedback = data;
 
     if (data.length === 0) {
         container.innerHTML = `<p>Nessun feedback trovato.</p>`;
@@ -112,7 +116,6 @@ async function updateStatus(requestId, newStatus) {
 // ==========================================================
 // == FUNZIONI PER L'ESPORTAZIONE IN CSV
 // ==========================================================
-
 function escapeCSV(str) {
     if (str === null || str === undefined) return '';
     let result = String(str);
