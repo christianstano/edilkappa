@@ -219,8 +219,10 @@ async function handleFeedbackSubmit(event) {
     if (error) {
         console.error('Errore feedback:', error);
         alert('Si è verificato un errore. Riprova.');
+        console.log();
     } else {
         window.location.href = 'thankyou2.html';
+        console.log();
     }
 }
 
@@ -371,3 +373,4 @@ function closeImagePopup() {
         popup.style.display = 'none';
     }
 }
+
