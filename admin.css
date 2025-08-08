@@ -1,4 +1,4 @@
-/* Reset base e Stili Globali */
+/* Reset base e Stili Globali per admin */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -54,7 +54,7 @@ section {
     background-color: white;
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
 }
 
@@ -232,7 +232,7 @@ footer a:hover {
     font-size: 1.2rem;
 }
 
-/* Stili per il popup delle immagini (da admin.html) */
+/* Stili per il popup delle immagini */
 .image-popup {
     position: fixed;
     z-index: 1000;
