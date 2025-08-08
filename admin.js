@@ -125,7 +125,7 @@ async function loadAllFeedback() {
     `).join('');
 }
 
-// Funzione per aggiornare lo stato di una richiesta
+// Funzione per aggiornare lo stato di una richiesta (CORRETTA)
 async function updateRequestStatus(requestId, newStatus) {
     const { error } = await _supabase
         .from('requests')
