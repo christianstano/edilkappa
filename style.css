@@ -482,23 +482,36 @@ footer a:hover {
     padding: 1.5rem;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 .request-card h4 { margin-bottom: 0.75rem; color: #003366; }
 .request-card p { margin-bottom: 0.5rem; font-size: 0.95rem; line-height: 1.5; }
-.request-card .status {
+.status-badge {
+    border-radius: 5px;
+    padding: 4px 8px;
     font-weight: bold;
-    padding: 0.25rem 0.75rem;
-    border-radius: 15px;
-    font-size: 0.85rem;
-    display: inline-block;
+    color: white;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    align-self: flex-start;
 }
 
-/* Stili per gli stati delle richieste (VISTA UTENTE) 
-.request-card .status.in-attesa { color: #a50e0e; background-color: #fce8e6; }
-.request-card .status.richiesta-presa-in-carico { color: #004085; background-color: #cce5ff; }
-.request-card .status.completato { color: #1e8e3e; background-color: #e6f4ea; } */
+/* Stili per gli stati delle richieste (VISTA UTENTE) */
+.status-badge.in-attesa {
+    background-color: #f7a83d;
+}
 
-/* Stile per il contenitore dello stato */
+.status-badge.presa-in-carico {
+    background-color: #2b70d4;
+}
+
+.status-badge.completato {
+    background-color: #4CAF50;
+}
+
+/* Stili per il contenitore dello stato */
 .status-container {
     border-radius: 5px;
     padding: 8px 12px;
@@ -509,25 +522,10 @@ footer a:hover {
     font-weight: bold;
     color: #fff;
 }
-
-/* Stili per i vari stati */
-.status-in-attesa {
-    background-color: #f7a83d; /* Arancione */
-}
-
-.status-presa-in-carico {
-    background-color: #2b70d4; /* Blu */
-}
-
-.status-completato {
-    background-color: #4CAF50; /* Verde */
-}
-
 .status-container label {
     color: #fff;
     margin-bottom: 0;
 }
-
 .status-select {
     width: 150px;
     padding: 5px;
@@ -546,7 +544,7 @@ footer a:hover {
 }
 
 /* ========================================================== */
-/* == STILI AGGIUNTI PER IL POPUP DELLE IMMAGINI            == */
+/* == STILI AGGIUNTI PER IL POPUP DELLE IMMAGINI           == */
 /* ========================================================== */
 .carousel-card img { cursor: pointer; }
 .image-popup {
@@ -609,4 +607,3 @@ footer a:hover {
 #message-container[style*="green"], #update-message-container[style*="green"] { color: #1e8e3e; }
 #message-container[style*="red"], #update-message-container[style*="red"] { color: #c0392b; }
 .auth-modal-content p a { color: #0059b3; text-decoration: underline; font-size: 0.9rem; }
-
