@@ -127,6 +127,7 @@ async function loadAllFeedback() {
 
 // Funzione per aggiornare lo stato di una richiesta (CORRETTA)
 async function updateRequestStatus(requestId, newStatus) {
+    // Esegui la richiesta di aggiornamento in modo asincrono
     const { error } = await _supabase
         .from('requests')
         .update({ status: newStatus })
@@ -137,7 +138,8 @@ async function updateRequestStatus(requestId, newStatus) {
         alert("Errore durante l'aggiornamento dello stato.");
     } else {
         console.log("Stato aggiornato con successo.");
-        loadAllRequests(); // Ricarica la lista per mostrare il colore aggiornato
+        // Una volta che l'aggiornamento è completato, ricarica la lista per mostrare la modifica
+        await loadAllRequests();
     }
 }
 
