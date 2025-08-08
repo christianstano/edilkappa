@@ -1,219 +1,229 @@
+// ======== CONFIGURAZIONE SUPABASE ========
 const SUPABASE_URL = 'https://rcfrdacrsnufecelbhfs.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjZnJkYWNyc251ZmVjZWxiaGZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5OTIxNjEsImV4cCI6MjA2NzU2ODE2MX0.jMwrZ7SftZMpxixb3gBMo883uE8SVC1XecFvknw9da4';
 
 const { createClient } = supabase;
 const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let allRequests = [];
-let allFeedback = [];
-
-document.addEventListener("DOMContentLoaded", async () => {
-    const { data: { user } } = await _supabase.auth.getUser();
-
-    if (!user) {
-        alert("Accesso non autorizzato. Effettua il login.");
-        window.location.href = 'index.html';
+// Funzione di inizializzazione per la pagina admin
+document.addEventListener('DOMContentLoaded', async () => {
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (!session) {
+        window.location.href = 'index.html'; // Reindirizza se non autenticato
         return;
     }
 
     const { data: profile, error: profileError } = await _supabase
         .from('profiles')
         .select('is_admin')
-        .eq('id', user.id)
+        .eq('id', session.user.id)
         .single();
 
-    if (profileError || !profile || !profile.is_admin) {
-        alert("Accesso negato. Non disponi dei permessi di amministratore.");
+    if (profileError || !profile.is_admin) {
+        alert("Accesso negato. Non sei un amministratore.");
         window.location.href = 'index.html';
         return;
     }
 
-    console.log("Accesso amministratore consentito.");
-
+    // Carica i dati una volta verificato l'accesso
     loadAllRequests();
     loadAllFeedback();
 
-    document.getElementById('exportRequestsBtn')?.addEventListener('click', exportRequestsToCSV);
-    document.getElementById('exportFeedbackBtn')?.addEventListener('click', exportFeedbackToCSV);
-
-    document.getElementById('requests-container')?.addEventListener('change', async (event) => {
-        if (event.target.classList.contains('status-select')) {
-            const requestId = event.target.dataset.id;
-            const newStatus = event.target.value;
-            await updateStatus(requestId, newStatus);
-        }
-    });
-
-    document.getElementById('logout-admin-btn')?.addEventListener('click', async () => {
-        await _supabase.auth.signOut();
-        window.location.href = 'index.html';
-    });
+    // Gestione eventi
+    document.getElementById('logout-admin-btn')?.addEventListener('click', logoutAdmin);
+    document.getElementById('export-requests-btn')?.addEventListener('click', exportRequestsToCSV);
+    document.getElementById('export-feedback-btn')?.addEventListener('click', exportFeedbackToCSV);
 });
 
-// ==========================================================
-// == FUNZIONI PER LE RICHIESTE                            ==
-// ==========================================================
+// Funzione corretta per il logout dell'admin
+async function logoutAdmin() {
+    const { error } = await _supabase.auth.signOut();
+    if (error) {
+        console.error('Errore durante il logout:', error);
+        alert('Si è verificato un errore durante il logout.');
+    } else {
+        window.location.href = 'index.html';
+    }
+}
+
+// Funzione per caricare tutte le richieste con barra laterale colorata
 async function loadAllRequests() {
-    const container = document.getElementById('requests-container');
-    if (!container) return;
+    const listContainer = document.getElementById('requests-list');
+    if (!listContainer) return;
 
-    container.innerHTML = `<p class="loading">Caricamento richieste in corso...</p>`;
+    listContainer.innerHTML = "<p>Caricamento richieste in corso...</p>";
 
-    const { data, error } = await _supabase.rpc('get_all_requests');
+    const { data, error } = await _supabase
+        .from('requests')
+        .select('*')
+        .order('created_at', { ascending: false });
 
     if (error) {
-        console.error("Errore nel caricare le richieste:", error);
-        container.innerHTML = `<p class="error">Errore nel caricamento delle richieste. Assicurati che l'utente sia autorizzato.</p>`;
+        console.error("Errore recupero richieste admin:", error);
+        listContainer.innerHTML = "<p>Impossibile caricare le richieste.</p>";
         return;
     }
-
-    allRequests = data;
 
     if (data.length === 0) {
-        container.innerHTML = `<p>Nessuna richiesta di assistenza trovata.</p>`;
+        listContainer.innerHTML = "<p>Nessuna richiesta di assistenza presente.</p>";
         return;
     }
 
-    container.innerHTML = data.map(req => {
-        const statusClass = `status-${req.status.toLowerCase().replace(/ /g, '-')}`;
-        const isDisabled = req.status === 'Completato' ? 'disabled' : '';
-
+    listContainer.innerHTML = data.map(req => {
+        const statusClass = req.status.toLowerCase().replace(/ /g, '-');
         return `
-            <div class="item-card">
-                <h3>Richiesta di: ${req.name}</h3>
-                <p><strong>Data:</strong> ${new Date(req.created_at).toLocaleString('it-IT')}</p>
-                <p><strong>Telefono:</strong> ${req.phone}</p>
+            <div class="item-card status-${statusClass}">
+                <h3>Richiesta del ${new Date(req.created_at).toLocaleDateString('it-IT')}</h3>
+                <p><strong>Utente:</strong> ${req.name}</p>
                 <p><strong>Problema:</strong> ${req.issue}</p>
+                <p><strong>Telefono:</strong> ${req.phone || 'N.D.'}</p>
                 ${req.photo_url ? `<p><strong>Foto:</strong> <a href="#" onclick="openImagePopup('${req.photo_url}'); return false;">Visualizza</a></p>` : ''}
-                <div class="status-container ${statusClass}">
-                    <label for="status-${req.id}">Stato:</label>
-                    <select id="status-${req.id}" class="status-select" data-id="${req.id}" ${isDisabled}>
+                <div class="status-container">
+                    <label for="status-select-${req.id}">Stato:</label>
+                    <select id="status-select-${req.id}" class="status-select" onchange="updateRequestStatus('${req.id}', this.value)">
                         <option value="In attesa" ${req.status === 'In attesa' ? 'selected' : ''}>In attesa</option>
-                        <option value="Presa in Carico" ${req.status === 'Presa in Carico' ? 'selected' : ''}>Presa in Carico</option>
+                        <option value="Presa in carico" ${req.status === 'Presa in carico' ? 'selected' : ''}>Presa in carico</option>
                         <option value="Completato" ${req.status === 'Completato' ? 'selected' : ''}>Completato</option>
                     </select>
                 </div>
             </div>
-        `;
-    }).join('');
+        `}).join('');
 }
 
-async function updateStatus(requestId, newStatus) {
-    const { error } = await _supabase.rpc('update_request_status', {
-        request_id: requestId,
-        new_status: newStatus
-    });
-
-    if (error) {
-        alert("Errore nell'aggiornamento della richiesta.");
-        console.error("Errore RPC 'update_request_status':", error);
-    } else {
-        loadAllRequests();
-    }
-}
-
-// ==========================================================
-// == FUNZIONI PER I FEEDBACK                              ==
-// ==========================================================
+// Funzione per caricare tutti i feedback
 async function loadAllFeedback() {
-    const container = document.getElementById('feedback-container');
-    if (!container) return;
+    const listContainer = document.getElementById('feedback-list');
+    if (!listContainer) return;
 
-    container.innerHTML = `<p class="loading">Caricamento feedback in corso...</p>`;
+    listContainer.innerHTML = "<p>Caricamento feedback in corso...</p>";
 
-    const { data, error } = await _supabase.rpc('get_all_feedback');
+    const { data, error } = await _supabase
+        .from('feedback')
+        .select('*')
+        .order('created_at', { ascending: false });
 
     if (error) {
-        console.error("Errore nel caricare i feedback:", error);
-        container.innerHTML = `<p class="error">Errore nel caricamento dei feedback. Assicurati che l'utente sia autorizzato.</p>`;
+        console.error("Errore recupero feedback admin:", error);
+        listContainer.innerHTML = "<p>Impossibile caricare i feedback.</p>";
         return;
     }
-
-    allFeedback = data;
 
     if (data.length === 0) {
-        container.innerHTML = `<p>Nessun feedback trovato.</p>`;
+        listContainer.innerHTML = "<p>Nessun feedback presente.</p>";
         return;
     }
-    container.innerHTML = data.map(fb => `
+
+    listContainer.innerHTML = data.map(fb => `
         <div class="item-card">
-            <h3>Feedback di: ${fb.name}</h3>
-            <p><strong>Data:</strong> ${new Date(fb.created_at).toLocaleString('it-IT')}</p>
-            <p><strong>Valutazione:</strong> <span class="rating-display">${'★'.repeat(fb.rating)}${'☆'.repeat(5 - fb.rating)}</span></p>
-            <p><strong>Commento:</strong> ${fb.comment}</p>
+            <h3>Feedback da ${fb.name}</h3>
+            <p><strong>Data:</strong> ${new Date(fb.created_at).toLocaleDateString('it-IT')}</p>
+            <p><strong>Valutazione:</strong>
+                <span class="rating-display">${'★'.repeat(fb.rating)}${'☆'.repeat(5 - fb.rating)}</span>
+            </p>
+            <p><strong>Commento:</strong> ${fb.comment || 'Nessun commento.'}</p>
         </div>
     `).join('');
 }
 
-// ==========================================================
-// == FUNZIONI PER L'ESPORTAZIONE IN CSV                   ==
-// ==========================================================
-function escapeCSV(str) {
-    if (str === null || str === undefined) return '';
-    let result = String(str);
-    if (result.includes(',') || result.includes('"') || result.includes('\n')) {
-        result = result.replace(/"/g, '""');
-        result = `"${result}"`;
-    }
-    return result;
-}
+// Funzione per aggiornare lo stato di una richiesta
+async function updateRequestStatus(requestId, newStatus) {
+    const { error } = await _supabase
+        .from('requests')
+        .update({ status: newStatus })
+        .eq('id', requestId);
 
-function downloadCSV(csvContent, fileName) {
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", fileName);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    if (error) {
+        console.error("Errore aggiornamento stato:", error);
+        alert("Errore durante l'aggiornamento dello stato.");
+    } else {
+        console.log("Stato aggiornato con successo.");
+        loadAllRequests(); // Ricarica la lista per mostrare il colore aggiornato
     }
 }
 
-function exportRequestsToCSV() {
-    if (allRequests.length === 0) {
-        alert("Nessuna richiesta da esportare.");
+// Funzione corretta per l'esportazione CSV delle richieste
+async function exportRequestsToCSV() {
+    const { data, error } = await _supabase
+        .from('requests')
+        .select('*');
+
+    if (error) {
+        console.error("Errore esportazione richieste:", error);
+        alert("Errore durante l'esportazione delle richieste.");
         return;
     }
 
-    const headers = ["ID", "Data", "Nome", "Telefono", "Problema", "Stato"];
-    const rows = allRequests.map(req => [
+    if (data.length === 0) {
+        alert("Non ci sono richieste da esportare.");
+        return;
+    }
+
+    const headers = ["ID", "Nome Utente", "Problema", "Telefono", "Stato", "Data Creazione", "URL Foto"];
+    const rows = data.map(req => [
         req.id,
-        new Date(req.created_at).toLocaleString('it-IT'),
         req.name,
-        req.phone,
         req.issue,
-        req.status
-    ].map(escapeCSV).join(','));
+        req.phone,
+        req.status,
+        new Date(req.created_at).toLocaleString(),
+        req.photo_url || ''
+    ]);
 
-    const csvContent = [headers.join(','), ...rows].join('\n');
-    downloadCSV(csvContent, 'richieste_edilkappa.csv');
+    const csvContent = [
+        headers.join(';'),
+        ...rows.map(row => row.join(';'))
+    ].join('\n');
+
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `richieste_assistenza_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
-function exportFeedbackToCSV() {
-    if (allFeedback.length === 0) {
-        alert("Nessun feedback da esportare.");
+// Funzione per l'esportazione CSV dei feedback
+async function exportFeedbackToCSV() {
+    const { data, error } = await _supabase
+        .from('feedback')
+        .select('*');
+
+    if (error) {
+        console.error("Errore esportazione feedback:", error);
+        alert("Errore durante l'esportazione dei feedback.");
         return;
     }
 
-    const headers = ["ID", "Data", "Nome", "Valutazione", "Commento"];
-    const rows = allFeedback.map(fb => [
+    if (data.length === 0) {
+        alert("Non ci sono feedback da esportare.");
+        return;
+    }
+
+    const headers = ["ID", "Nome Utente", "Valutazione", "Commento", "Data Creazione"];
+    const rows = data.map(fb => [
         fb.id,
-        new Date(fb.created_at).toLocaleString('it-IT'),
         fb.name,
         fb.rating,
-        fb.comment
-    ].map(escapeCSV).join(','));
+        fb.comment || '',
+        new Date(fb.created_at).toLocaleString()
+    ]);
 
-    const csvContent = [headers.join(','), ...rows].join('\n');
-    downloadCSV(csvContent, 'feedback_edilkappa.csv');
+    const csvContent = [
+        headers.join(';'),
+        ...rows.map(row => row.join(';'))
+    ].join('\n');
+
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `feedback_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
-// ==========================================================
-// == FUNZIONI POPUP IMMAGINI                              ==
-// ==========================================================
+// Funzioni per il popup delle immagini
 function openImagePopup(src) {
     const popup = document.getElementById('image-popup');
     const popupImg = document.getElementById('popup-img');
