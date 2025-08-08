@@ -26,7 +26,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     showHome();
 
-    // Aggiunto listener per il resize della finestra per il carosello
     window.addEventListener('resize', updateCarousel);
 });
 
@@ -71,12 +70,7 @@ function showSection(sectionId) {
 }
 
 function showHome() { showSection('overlay'); }
-
-function showPastJobs() {
-    showSection('pastJobs');
-    updateCarousel();
-}
-
+function showPastJobs() { showSection('pastJobs'); updateCarousel(); }
 function showFeedbackForm() {
     if (!currentUser) {
         alert("Devi effettuare il login per lasciare un feedback.");
@@ -217,10 +211,8 @@ async function handleFeedbackSubmit(event) {
     if (error) {
         console.error('Errore feedback:', error);
         alert('Si è verificato un errore. Riprova.');
-        console.log();
     } else {
         window.location.href = 'thankyou2.html';
-        console.log();
     }
 }
 
@@ -272,7 +264,7 @@ function renderLoginForm() {
                 <button type="submit">Accedi</button>
             </form>
             <p id="auth-toggle" onclick="renderSignupForm()">Non hai un account? Registrati</p>
-            <p id="auth-toggle"><a href="forgot-password.html">Password dimenticata?</a></p>
+            <p><a href="#" onclick="openForgotPasswordForm(); return false;">Password dimenticata?</a></p>
         `;
         document.getElementById('login-form')?.addEventListener('submit', handleLogin);
     }
@@ -283,6 +275,41 @@ function renderSignupForm() {
     if (authContainer) {
         authContainer.innerHTML = `<h3>Crea un Account</h3><form id="signup-form" class="auth-form"><input type="text" id="signup-name" placeholder="Nome e Cognome" required><input type="email" id="signup-email" placeholder="Email" required><input type="password" id="signup-password" placeholder="Password (min. 6 caratteri)" required><div id="auth-error"></div><button type="submit">Registrati</button></form><p id="auth-toggle" onclick="renderLoginForm()">Hai già un account? Accedi</p>`;
         document.getElementById('signup-form')?.addEventListener('submit', handleSignup);
+    }
+}
+
+function openForgotPasswordForm() {
+    const authContainer = document.getElementById('auth-container');
+    if (authContainer) {
+        authContainer.innerHTML = `
+            <h3>Password Dimenticata</h3>
+            <p>Inserisci la tua email per ricevere un link di reset.</p>
+            <form id="forgot-password-form" class="auth-form">
+                <input type="email" id="forgot-email" placeholder="Email" required>
+                <div id="auth-error"></div>
+                <button type="submit">Invia Link di Reset</button>
+            </form>
+            <p id="auth-toggle" onclick="renderLoginForm()">Torna al Login</p>
+        `;
+        document.getElementById('forgot-password-form')?.addEventListener('submit', handleForgotPassword);
+    }
+}
+
+async function handleForgotPassword(e) {
+    e.preventDefault();
+    const errorDiv = document.getElementById('auth-error');
+    errorDiv.textContent = '';
+    const email = document.getElementById('forgot-email').value;
+
+    const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password.html`
+    });
+
+    if (error) {
+        errorDiv.textContent = "Errore durante l'invio del link. Riprova.";
+    } else {
+        alert("Controlla la tua email per il link di reset della password.");
+        renderLoginForm();
     }
 }
 
@@ -348,13 +375,12 @@ async function showMyRequests() {
 
     listContainer.innerHTML = data.map(req => {
         const statusClass = req.status.toLowerCase().replace(/ /g, '-');
-
         return `
         <div class="request-card">
             <h4>Richiesta del ${new Date(req.created_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' })}</h4>
             <p><strong>Problema:</strong> ${req.issue}</p>
             <p><strong>Stato:</strong> 
-                <span class="status ${statusClass}">
+                <span class="status-badge ${statusClass}">
                     ${req.status}
                 </span>
             </p>
@@ -362,8 +388,9 @@ async function showMyRequests() {
     `}).join('');
 }
 
+
 // ==========================================================
-// == FUNZIONI AGGIUNTE PER IL POPUP DELLE IMMAGINI        ==
+// == NUOVE FUNZIONI PER IL POPUP DELLE IMMAGINI           ==
 // ==========================================================
 function openImagePopup(src) {
     const popup = document.getElementById('image-popup');
@@ -381,5 +408,3 @@ function closeImagePopup() {
         popup.style.display = 'none';
     }
 }
-
-
