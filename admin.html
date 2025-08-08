@@ -3,52 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pannello Admin - Edilkappa</title>
+    <title>Dashboard Amministratore</title>
     <link rel="stylesheet" href="admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="admin.js" defer></script>
 </head>
 <body>
+
     <header>
-        <h1>Pannello Amministratore Edilkappa</h1>
-        <button id="logout-btn">Logout</button>
+        <h1>Dashboard Amministratore</h1>
+        <button id="logout-admin-btn">Logout</button>
     </header>
 
     <main>
         <section id="requests-section">
             <div class="section-header">
                 <h2>Richieste di Assistenza</h2>
-                <button id="export-requests-btn" class="export-btn">Esporta (CSV)</button>
+                <button id="export-requests-btn" class="export-btn">Esporta in CSV</button>
             </div>
-            <div id="requests-container" class="data-container">
-                <p>Caricamento...</p>
-            </div>
+            <div id="requests-list" class="data-container">
+                </div>
         </section>
 
         <section id="feedback-section">
             <div class="section-header">
-                <h2>Feedback dei Clienti</h2>
-                <button id="export-feedback-btn" class="export-btn">Esporta (CSV)</button>
+                <h2>Feedback</h2>
+                <button id="export-feedback-btn" class="export-btn">Esporta in CSV</button>
             </div>
-            <div id="feedback-container" class="data-container">
-                <p>Caricamento...</p>
-            </div>
+            <div id="feedback-list" class="data-container">
+                </div>
         </section>
     </main>
-    
-    <footer>
-        <div class="footer-content">
-            <h3>Contattaci</h3>
-            <p><i class="fas fa-envelope"></i> <a href="mailto:edilkappasas@outlook.it">edilkappasas@outlook.it</a></p>
-            <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/393490977711">+39 3490977711</a></p>
-            <p><i class="fas fa-phone-alt"></i> <a href="tel:+393490977711">+39 3490977711</a></p>
-            <p><i class="fas fa-map-marker-alt"></i> Via S.Ambrogio 38, Vimodrone (MI)</p>
-        </div>
-        <div class="footer-bottom">
-            &copy; 2025 <strong>Edilkappa</strong>. Tutti i diritti riservati.
-        </div>
-    </footer>
-    
-    <script src="admin.js"></script>
+
+    <div id="image-popup" class="image-popup" onclick="closeImagePopup()">
+        <span class="close-popup">&times;</span>
+        <img class="popup-content" id="popup-img">
+    </div>
+
 </body>
 </html>
