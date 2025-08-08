@@ -8,17 +8,14 @@ let allRequests = [];
 let allFeedback = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // --- CONTROLLO DI AUTORIZZAZIONE ---
     const { data: { user } } = await _supabase.auth.getUser();
 
-    // 1. Reindirizza se l'utente non è loggato
     if (!user) {
         alert("Accesso non autorizzato. Effettua il login.");
         window.location.href = 'index.html';
         return;
     }
 
-    // 2. Controlla il ruolo dell'utente dalla tabella 'profiles'
     const { data: profile, error: profileError } = await _supabase
         .from('profiles')
         .select('is_admin')
@@ -31,10 +28,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    // Se i controlli passano, esegui il resto del codice per caricare la pagina
     console.log("Accesso amministratore consentito.");
 
-    // --- INIZIALIZZAZIONE DELLA PAGINA ADMIN ---
     loadAllRequests();
     loadAllFeedback();
 
@@ -49,7 +44,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // Listener per il logout (aggiunto per completezza)
     document.getElementById('logout-admin-btn')?.addEventListener('click', async () => {
         await _supabase.auth.signOut();
         window.location.href = 'index.html';
@@ -57,7 +51,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // ==========================================================
-// == FUNZIONI PER LE RICHIESTE                              ==
+// == FUNZIONI PER LE RICHIESTE                            ==
 // ==========================================================
 async function loadAllRequests() {
     const container = document.getElementById('requests-container');
@@ -80,23 +74,28 @@ async function loadAllRequests() {
         return;
     }
 
-    container.innerHTML = data.map(req => `
-        <div class="item-card">
-            <h3>Richiesta di: ${req.name}</h3>
-            <p><strong>Data:</strong> ${new Date(req.created_at).toLocaleString('it-IT')}</p>
-            <p><strong>Telefono:</strong> ${req.phone}</p>
-            <p><strong>Problema:</strong> ${req.issue}</p>
-            ${req.photo_url ? `<p><strong>Foto:</strong> <a href="#" onclick="openImagePopup('${req.photo_url}'); return false;">Visualizza</a></p>` : ''}
-            <div>
-                <label for="status-${req.id}">Stato:</label>
-                <select id="status-${req.id}" class="status-select" data-id="${req.id}">
-                    <option value="In attesa" ${req.status === 'In attesa' ? 'selected' : ''}>In attesa</option>
-                    <option value="Presa in Carico" ${req.status === 'Presa in Carico' ? 'selected' : ''}>Presa in Carico</option>
-                    <option value="Completato" ${req.status === 'Completato' ? 'selected' : ''}>Completato</option>
-                </select>
+    container.innerHTML = data.map(req => {
+        const statusClass = `status-${req.status.toLowerCase().replace(/ /g, '-')}`;
+        const isDisabled = req.status === 'Completato' ? 'disabled' : '';
+
+        return `
+            <div class="item-card">
+                <h3>Richiesta di: ${req.name}</h3>
+                <p><strong>Data:</strong> ${new Date(req.created_at).toLocaleString('it-IT')}</p>
+                <p><strong>Telefono:</strong> ${req.phone}</p>
+                <p><strong>Problema:</strong> ${req.issue}</p>
+                ${req.photo_url ? `<p><strong>Foto:</strong> <a href="#" onclick="openImagePopup('${req.photo_url}'); return false;">Visualizza</a></p>` : ''}
+                <div class="status-container ${statusClass}">
+                    <label for="status-${req.id}">Stato:</label>
+                    <select id="status-${req.id}" class="status-select" data-id="${req.id}" ${isDisabled}>
+                        <option value="In attesa" ${req.status === 'In attesa' ? 'selected' : ''}>In attesa</option>
+                        <option value="Presa in Carico" ${req.status === 'Presa in Carico' ? 'selected' : ''}>Presa in Carico</option>
+                        <option value="Completato" ${req.status === 'Completato' ? 'selected' : ''}>Completato</option>
+                    </select>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 async function updateStatus(requestId, newStatus) {
@@ -114,7 +113,7 @@ async function updateStatus(requestId, newStatus) {
 }
 
 // ==========================================================
-// == FUNZIONI PER I FEEDBACK                                ==
+// == FUNZIONI PER I FEEDBACK                              ==
 // ==========================================================
 async function loadAllFeedback() {
     const container = document.getElementById('feedback-container');
@@ -213,7 +212,7 @@ function exportFeedbackToCSV() {
 }
 
 // ==========================================================
-// == FUNZIONI POPUP IMMAGINI                                ==
+// == FUNZIONI POPUP IMMAGINI                              ==
 // ==========================================================
 function openImagePopup(src) {
     const popup = document.getElementById('image-popup');
